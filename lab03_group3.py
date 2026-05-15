@@ -1,64 +1,84 @@
 # Lab03_3.py
-# We need to figure out the logic to collect all the students. Specifically we are looking for students with IDs that end in 6 or 7. 
-# So the logic should find all the students with IDs that have 6 or 7 at the end. We are focusing on students, with IDs ending in 6 or 7.
+# Purpose: Filter students whose IDs end with 6 or 7
 
-import csv
+output_filename = "group_3.txt"
 
-def main():
-    # Names of the files we are working with
-    input_file = "students.txt"
-    output_file = "group_3.txt"
+try:
+    with open("student.txt", "r") as student_file:
+        lines = student_file.readlines()
+except FileNotFoundError:
+    print("Error: 'student.txt' not found.")
+    exit()
+
+if not lines:
+    print("Error: The file is empty.")
+    exit()
+
+# --- Step 1: Parse Header ---
+# Using the names from your provided data: SL.No., Name, Std. Id
+columns = [c.strip() for c in lines[0].strip().split('\t')]
+# If your file uses commas instead of tabs, change .split('\t') to .split(',')
+
+data_lines = lines[1:]
+
+all_students = []
+for line in data_lines:
+    line = line.strip()
+    if not line:
+        continue
+    # Splitting by tab as per your sample data layout
+    values = [v.strip() for v in line.split('\t') if v.strip()]
     
-    # This list will store all students who meet our condition
-    group_3_list = []
+    if len(values) >= 3:
+        student = {
+            'SL.No': values[0],
+            'Name': values[1],
+            'ID': values[2]
+        }
+        all_students.append(student)
 
-    try:
-        # 1. Open the file using the CSV library
-        with open(input_file, mode='r') as file:
-            # csv.reader automatically separates the Name and ID
-            reader = csv.reader(file)
-            
-            serial = 1  # Start serial number from 1
-            for row in reader:
-                # Basic check to make sure the row has data (Name and ID)
-                if len(row) == 2:
-                    # Add serial number to make it [Serial, Name, ID]
-                    full_row = [str(serial), row[0], row[1]]
-                    # row[2] is the Student ID column (now full_row[2])
-                    student_id = full_row[2]
-                    
-                    # 2. Logic to "add" student to our group list
-                    # We check the last character of the ID string
-                    if student_id[-1] == '6' or student_id[-1] == '7':
-                        group_3_list.append(full_row)
-                    
-                    serial += 1  # Increment serial for next student
+# --- Step 2: Filter by ID ending in 6 or 7 ---
+group_3_students = [s for s in all_students if s['ID'].endswith('6') or s['ID'].endswith('7')]
 
-        # 3. Sort the list so we can find the First and Last student easily
-        # Sorting by the third column (Student ID) numerically
-        group_3_list.sort(key=lambda x: int(x[2]))
+# --- Step 3: Sort by ID ---
+group_3_sorted = sorted(group_3_students, key=lambda s: s['ID'])
 
-        # 4. Display the results for the Lab Report
-        print(f"Total students found for Group 3: {len(group_3_list)}")
-        
-        print("\nList of Students:")
-        for student in group_3_list:
-            print(f"Serial: {student[0]} | ID: {student[2]} | Name: {student[1]}")
+# --- Step 4: Identify First and Last ---
+if group_3_sorted:
+    first_student = group_3_sorted[0]
+    last_student = group_3_sorted[-1]
+else:
+    print("No students found ending in 6 or 7.")
+    exit()
 
-        # Show the boundary students as requested by instructions
-        if group_3_list:
-            print(f"\nFirst Student in Group: {group_3_list[0][1]} (ID: {group_3_list[0][2]})")
-            print(f"Last Student in Group: {group_3_list[-1][1]} (ID: {group_3_list[-1][2]})")
+# --- Step 5: Display and Save Results ---
+output_lines = []
 
-        # 5. Write the final collected list to the new file
-        with open(output_file, mode='w', newline='') as out_file:
-            writer = csv.writer(out_file)
-            writer.writerows(group_3_list)
+def add_line(text):
+    print(text)
+    output_lines.append(text)
 
-        print(f"\nFile '{output_file}' has been created successfully.")
+add_line("=" * 50)
+add_line("       STUDENTS WITH IDs ENDING IN 6 OR 7")
+add_line("=" * 50)
+add_line(f"\nTotal number of students found: {len(group_3_sorted)}\n")
 
-    except FileNotFoundError:
-        print("Error: Please make sure 'students.txt' is in the same folder.")
+add_line("Names of selected students:")
+add_line("-" * 30)
+for idx, student in enumerate(group_3_sorted, start=1):
+    add_line(f"  {idx}. {student['Name']} (ID: {student['ID']})")
 
-if __name__ == "__main__":
-    main()
+add_line("\n" + "-" * 50)
+add_line("First Student (by ID):")
+add_line(f"  ID   : {first_student['ID']}")
+add_line(f"  Name : {first_student['Name']}")
+
+add_line("\nLast Student (by ID):")
+add_line(f"  ID   : {last_student['ID']}")
+add_line(f"  Name : {last_student['Name']}")
+add_line("=" * 50)
+
+with open(output_filename, "w") as out_file:
+    out_file.write("\n".join(output_lines))
+
+print(f"\nSuccess! Results saved to '{output_filename}'.")
