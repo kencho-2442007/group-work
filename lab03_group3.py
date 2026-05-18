@@ -14,7 +14,7 @@ if not lines:
     print("Error: The file is empty.")
     exit()
 
-#Step 1: Parse Header
+#Step 1: Parse header
 #Use the names from the provided data: SL.No., Name, Std. Id
 columns = [c.strip() for c in lines[0].strip().split('\t')]
 #If your file uses commas instead of tabs, change .split('\t') to .split(',')
